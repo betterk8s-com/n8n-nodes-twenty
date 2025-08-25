@@ -1,48 +1,195 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+# n8n-nodes-twentycrm
 
-# n8n-nodes-starter
+This is an n8n community node that provides full integration with [Twenty CRM](https://twenty.com), an open-source CRM platform. It allows you to automate workflows and interact with Twenty CRM data directly from n8n.
 
-This repo contains example nodes to help you get started building your own custom integrations for [n8n](https://n8n.io). It includes the node linter and other dependencies.
+## Features
 
-To make your custom node available to the community, you must create it as an npm package, and [submit it to the npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+This node provides comprehensive access to the Twenty CRM API with 50+ operations across multiple resources:
 
-If you would like your node to be available on n8n cloud you can also [submit your node for verification](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/).
+### Supported Resources
 
-## Prerequisites
+- **Person** - Manage contacts and individuals
+- **Company** - Handle company records
+- **Opportunity** - Track sales opportunities
+- **Task** - Manage tasks and to-dos
+- **Note** - Create and manage notes
+- **Calendar Event** - Handle calendar events
+- **Message** - Manage messages
+- **Attachment** - Handle file attachments
+- **Workflow** - Manage automation workflows
+- **Custom** - Access any Twenty CRM resource via API
 
-You need the following installed on your development machine:
+### Available Operations
 
-* [git](https://git-scm.com/downloads)
-* Node.js and npm. Minimum version Node 20. You can find instructions on how to install both using nvm (Node Version Manager) for Linux, Mac, and WSL [here](https://github.com/nvm-sh/nvm). For Windows users, refer to Microsoft's guide to [Install NodeJS on Windows](https://docs.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows).
-* Install n8n with:
-  ```
-  npm install n8n -g
-  ```
-* Recommended: follow n8n's guide to [set up your development environment](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/).
+Each resource supports the following operations:
+- **Create** - Create new records
+- **Get** - Retrieve a single record by ID
+- **Get Many** - Retrieve multiple records with filtering and pagination
+- **Update** - Update existing records
+- **Delete** - Delete records
 
-## Using this starter
+### Additional Features
 
-These are the basic steps for working with the starter. For detailed guidance on creating and publishing nodes, refer to the [documentation](https://docs.n8n.io/integrations/creating-nodes/).
+- Full pagination support with cursor-based navigation
+- Advanced filtering with JSON queries
+- Custom field support
+- Bulk operations support
+- Automatic retry on failure
+- Rich text fields with Markdown support
 
-1. [Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template repository.
-2. Clone your new repo:
-   ```
-   git clone https://github.com/<your organization>/<your-repo-name>.git
-   ```
-3. Run `npm i` to install dependencies.
-4. Open the project in your editor.
-5. Browse the examples in `/nodes` and `/credentials`. Modify the examples, or replace them with your own nodes.
-6. Update the `package.json` to match your details.
-7. Run `npm run lint` to check for errors or `npm run lintfix` to automatically fix errors when possible.
-8. Test your node locally. Refer to [Run your node locally](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/) for guidance.
-9. Replace this README with documentation for your node. Use the [README_TEMPLATE](README_TEMPLATE.md) to get started.
-10. Update the LICENSE file to use your details.
-11. [Publish](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry) your package to npm.
+## Installation
 
-## More information
+### Using n8n UI
 
-Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/creating-nodes/) for detailed information on building your own nodes.
+1. Go to **Settings** > **Community Nodes**
+2. Select **Install**
+3. Enter `n8n-nodes-twentycrm`
+4. Click **Install**
+
+### Using CLI
+
+```bash
+npm install n8n-nodes-twentycrm
+```
+
+After installation, restart your n8n instance to load the new node.
+
+## Configuration
+
+### Credentials
+
+To use this node, you need to configure Twenty CRM credentials:
+
+1. **API URL**: Your Twenty CRM instance URL (e.g., `https://api.twenty.com`)
+2. **API Key**: Your Twenty CRM API key
+
+### Getting API Credentials
+
+1. Log into your Twenty CRM instance
+2. Navigate to Settings > API & Webhooks
+3. Generate a new API key
+4. Copy the API key and your instance URL
+
+## Usage Examples
+
+### Create a Person
+
+```json
+{
+  "resource": "person",
+  "operation": "create",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "+1234567890",
+  "jobTitle": "Manager",
+  "city": "New York"
+}
+```
+
+### Get All Companies with Filtering
+
+```json
+{
+  "resource": "company",
+  "operation": "getAll",
+  "returnAll": false,
+  "limit": 50,
+  "additionalOptions": {
+    "orderBy": "name",
+    "orderDirection": "ASC",
+    "filter": {
+      "employees": {
+        "gte": 10
+      }
+    }
+  }
+}
+```
+
+### Update an Opportunity
+
+```json
+{
+  "resource": "opportunity",
+  "operation": "update",
+  "id": "opportunity-id-here",
+  "stage": "NEGOTIATION",
+  "probability": 75
+}
+```
+
+### Custom Resource Access
+
+For resources not explicitly listed, use the "Custom" resource type:
+
+```json
+{
+  "resource": "custom",
+  "operation": "create",
+  "customResource": "blocklists",
+  "fieldsJson": {
+    "handle": "spam@example.com",
+    "workspaceMemberId": "member-id"
+  }
+}
+```
+
+## Advanced Features
+
+### Pagination
+
+The node automatically handles pagination when "Return All" is enabled. For manual pagination control, use the cursor fields in additional options.
+
+### Filtering
+
+Use JSON-based filters to query specific records:
+
+```json
+{
+  "filter": {
+    "createdAt": {
+      "gte": "2024-01-01"
+    },
+    "status": "active"
+  }
+}
+```
+
+### Error Handling
+
+The node includes automatic error handling with retry logic. Enable "Continue On Fail" in the node settings to handle errors gracefully in your workflows.
+
+## Compatibility
+
+- **n8n Version**: 0.187.0 or later
+- **Twenty CRM API**: v0.20 or later
+- **Node.js**: 20.15 or later
+
+## Resources
+
+- [Twenty CRM Documentation](https://developers.twenty.com)
+- [Twenty CRM API Reference](https://developers.twenty.com/rest-api)
+- [n8n Documentation](https://docs.n8n.io)
+
+## Support
+
+For issues, feature requests, or questions:
+- [GitHub Issues](https://github.com/betterk8s-com/n8n-nodes-twenty/issues)
+- [Twenty CRM Community](https://twenty.com/community)
+- [n8n Community Forum](https://community.n8n.io)
 
 ## License
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+[MIT](https://github.com/betterk8s-com/n8n-nodes-twenty/blob/main/LICENSE.md)
+
+## Changelog
+
+### v0.1.6
+- Simplified node structure for better UI compatibility
+- Added 10 core resources with full CRUD operations
+- Improved error handling and pagination
+- Added custom resource support for extended functionality
+
+### v0.1.0
+- Initial release with basic Twenty CRM integration

@@ -3,11 +3,10 @@ import {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-	NodeOperationError,
+	NodeConnectionType,
 	IDataObject,
 	IHttpRequestMethods,
-	NodeConnectionType,
-	IBinaryData,
+	NodeOperationError,
 } from 'n8n-workflow';
 
 export class TwentyCrm implements INodeType {
@@ -18,7 +17,7 @@ export class TwentyCrm implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Complete integration with Twenty CRM API - All features',
+		description: 'Connect with Twenty CRM API',
 		defaults: {
 			name: 'Twenty CRM',
 		},
@@ -31,195 +30,57 @@ export class TwentyCrm implements INodeType {
 			},
 		],
 		properties: [
-			{
-				displayName: 'API Type',
-				name: 'apiType',
-				type: 'options',
-				noDataExpression: true,
-				options: [
-					{
-						name: 'Batch',
-						value: 'batch',
-						description: 'Perform batch operations',
-					},
-					{
-						name: 'GraphQL',
-						value: 'graphql',
-						description: 'Use GraphQL for complex queries',
-					},
-					{
-						name: 'Metadata',
-						value: 'metadata',
-						description: 'Access metadata and schema information',
-					},
-					{
-						name: 'REST',
-						value: 'rest',
-						description: 'Use REST API for standard CRUD operations',
-					},
-					{
-						name: 'Webhooks',
-						value: 'webhooks',
-						description: 'Manage webhooks for event notifications',
-					},
-				],
-				default: 'rest',
-			},
-			// REST API Resources
+			// Resource
 			{
 				displayName: 'Resource',
 				name: 'resource',
 				type: 'options',
 				noDataExpression: true,
-				displayOptions: {
-					show: {
-						apiType: ['rest'],
-					},
-				},
 				options: [
-					{
-						name: 'Attachment',
-						value: 'attachment',
-					},
-					{
-						name: 'Blocklist',
-						value: 'blocklist',
-					},
-					{
-						name: 'Calendar Channel',
-						value: 'calendarChannel',
-					},
-					{
-						name: 'Calendar Channel Event Association',
-						value: 'calendarChannelEventAssociation',
-					},
-					{
-						name: 'Calendar Event',
-						value: 'calendarEvent',
-					},
-					{
-						name: 'Calendar Event Participant',
-						value: 'calendarEventParticipant',
-					},
 					{
 						name: 'Company',
 						value: 'company',
-					},
-					{
-						name: 'Connected Account',
-						value: 'connectedAccount',
-					},
-					{
-						name: 'Favorite',
-						value: 'favorite',
-					},
-					{
-						name: 'Favorite Folder',
-						value: 'favoriteFolder',
-					},
-					{
-						name: 'Message',
-						value: 'message',
-					},
-					{
-						name: 'Message Channel',
-						value: 'messageChannel',
-					},
-					{
-						name: 'Message Channel Message Association',
-						value: 'messageChannelMessageAssociation',
-					},
-					{
-						name: 'Message Folder',
-						value: 'messageFolder',
-					},
-					{
-						name: 'Message Participant',
-						value: 'messageParticipant',
-					},
-					{
-						name: 'Message Thread',
-						value: 'messageThread',
-					},
-					{
-						name: 'Note',
-						value: 'note',
-					},
-					{
-						name: 'Note Target',
-						value: 'noteTarget',
-					},
-					{
-						name: 'Opportunity',
-						value: 'opportunity',
 					},
 					{
 						name: 'Person',
 						value: 'person',
 					},
 					{
+						name: 'Opportunity',
+						value: 'opportunity',
+					},
+					{
 						name: 'Task',
 						value: 'task',
 					},
 					{
-						name: 'Task Target',
-						value: 'taskTarget',
+						name: 'Note',
+						value: 'note',
 					},
 					{
-						name: 'Timeline Activity',
-						value: 'timelineActivity',
+						name: 'Calendar Event',
+						value: 'calendarEvent',
 					},
 					{
-						name: 'View',
-						value: 'view',
+						name: 'Message',
+						value: 'message',
 					},
 					{
-						name: 'View Field',
-						value: 'viewField',
-					},
-					{
-						name: 'View Filter',
-						value: 'viewFilter',
-					},
-					{
-						name: 'View Filter Group',
-						value: 'viewFilterGroup',
-					},
-					{
-						name: 'View Group',
-						value: 'viewGroup',
-					},
-					{
-						name: 'View Sort',
-						value: 'viewSort',
+						name: 'Attachment',
+						value: 'attachment',
 					},
 					{
 						name: 'Workflow',
 						value: 'workflow',
 					},
 					{
-						name: 'Workflow Automated Trigger',
-						value: 'workflowAutomatedTrigger',
-					},
-					{
-						name: 'Workflow Run',
-						value: 'workflowRun',
-					},
-					{
-						name: 'Workflow Version',
-						value: 'workflowVersion',
-					},
-					{
-						name: 'Workspace Member',
-						value: 'workspaceMember',
-					},
-					{
-						name: 'Custom Object',
-						value: 'customObject',
+						name: 'Custom',
+						value: 'custom',
 					},
 				],
 				default: 'person',
 			},
+			// Operations
 			{
 				displayName: 'Operation',
 				name: 'operation',
@@ -227,7 +88,18 @@ export class TwentyCrm implements INodeType {
 				noDataExpression: true,
 				displayOptions: {
 					show: {
-						apiType: ['rest'],
+						resource: [
+							'company',
+							'person',
+							'opportunity',
+							'task',
+							'note',
+							'calendarEvent',
+							'message',
+							'attachment',
+							'workflow',
+							'custom',
+						],
 					},
 				},
 				options: [
@@ -236,12 +108,6 @@ export class TwentyCrm implements INodeType {
 						value: 'create',
 						description: 'Create a new record',
 						action: 'Create a record',
-					},
-					{
-						name: 'Create or Update',
-						value: 'upsert',
-						description: 'Create a new record, or update the current one if it already exists (upsert)',
-						action: 'Upsert a record',
 					},
 					{
 						name: 'Delete',
@@ -262,12 +128,6 @@ export class TwentyCrm implements INodeType {
 						action: 'Get many records',
 					},
 					{
-						name: 'Search',
-						value: 'search',
-						description: 'Search records using full-text search',
-						action: 'Search records',
-					},
-					{
 						name: 'Update',
 						value: 'update',
 						description: 'Update a record',
@@ -276,849 +136,360 @@ export class TwentyCrm implements INodeType {
 				],
 				default: 'getAll',
 			},
-			// Webhook Operations
+
+			// ----------------------------------------
+			//             Common Fields
+			// ----------------------------------------
 			{
-				displayName: 'Webhook Operation',
-				name: 'webhookOperation',
-				type: 'options',
-				displayOptions: {
-					show: {
-						apiType: ['webhooks'],
-					},
-				},
-				options: [
-					{
-						name: 'Create',
-						value: 'create',
-						description: 'Create a new webhook',
-					},
-					{
-						name: 'Delete',
-						value: 'delete',
-						description: 'Delete a webhook',
-					},
-					{
-						name: 'Get',
-						value: 'get',
-						description: 'Get a webhook',
-					},
-					{
-						name: 'Get Many',
-						value: 'getAll',
-						description: 'Get all webhooks',
-					},
-					{
-						name: 'Update',
-						value: 'update',
-						description: 'Update a webhook',
-					},
-				],
-				default: 'getAll',
-			},
-			// Webhook Fields
-			{
-				displayName: 'Webhook URL',
-				name: 'webhookUrl',
-				type: 'string',
-				required: true,
-				displayOptions: {
-					show: {
-						apiType: ['webhooks'],
-						webhookOperation: ['create', 'update'],
-					},
-				},
-				default: '',
-				placeholder: 'https://your-domain.com/webhook',
-				description: 'URL to receive webhook notifications',
-			},
-			{
-				displayName: 'Events',
-				name: 'webhookEvents',
-				type: 'multiOptions',
-				displayOptions: {
-					show: {
-						apiType: ['webhooks'],
-						webhookOperation: ['create', 'update'],
-					},
-				},
-				options: [
-					{
-						name: 'Company Created',
-						value: 'company.created',
-					},
-					{
-						name: 'Company Deleted',
-						value: 'company.deleted',
-					},
-					{
-						name: 'Company Updated',
-						value: 'company.updated',
-					},
-					{
-						name: 'Opportunity Created',
-						value: 'opportunity.created',
-					},
-					{
-						name: 'Opportunity Updated',
-						value: 'opportunity.updated',
-					},
-					{
-						name: 'Person Created',
-						value: 'person.created',
-					},
-					{
-						name: 'Person Deleted',
-						value: 'person.deleted',
-					},
-					{
-						name: 'Person Updated',
-						value: 'person.updated',
-					},
-					{
-						name: 'Task Completed',
-						value: 'task.completed',
-					},
-					{
-						name: 'Task Created',
-						value: 'task.created',
-					},
-					{
-						name: 'Task Updated',
-						value: 'task.updated',
-					},
-				],
-				default: [],
-				description: 'Events that trigger the webhook',
-			},
-			{
-				displayName: 'Webhook ID',
-				name: 'webhookId',
-				type: 'string',
-				required: true,
-				displayOptions: {
-					show: {
-						apiType: ['webhooks'],
-						webhookOperation: ['get', 'update', 'delete'],
-					},
-				},
-				default: '',
-				description: 'ID of the webhook',
-			},
-			// Batch Operations
-			{
-				displayName: 'Batch Operation',
-				name: 'batchOperation',
-				type: 'options',
-				displayOptions: {
-					show: {
-						apiType: ['batch'],
-					},
-				},
-				options: [
-					{
-						name: 'Create Multiple',
-						value: 'createMultiple',
-						description: 'Create multiple records at once',
-					},
-					{
-						name: 'Update Multiple',
-						value: 'updateMultiple',
-						description: 'Update multiple records at once',
-					},
-					{
-						name: 'Delete Multiple',
-						value: 'deleteMultiple',
-						description: 'Delete multiple records at once',
-					},
-					{
-						name: 'Mixed Operations',
-						value: 'mixed',
-						description: 'Perform different operations in one request',
-					},
-				],
-				default: 'createMultiple',
-			},
-			{
-				displayName: 'Batch Resource',
-				name: 'batchResource',
-				type: 'options',
-				displayOptions: {
-					show: {
-						apiType: ['batch'],
-					},
-				},
-				options: [
-					{
-						name: 'Companies',
-						value: 'companies',
-					},
-					{
-						name: 'Notes',
-						value: 'notes',
-					},
-					{
-						name: 'Opportunities',
-						value: 'opportunities',
-					},
-					{
-						name: 'People',
-						value: 'people',
-					},
-					{
-						name: 'Tasks',
-						value: 'tasks',
-					},
-				],
-				default: 'people',
-			},
-			{
-				displayName: 'Batch Data',
-				name: 'batchData',
-				type: 'json',
-				displayOptions: {
-					show: {
-						apiType: ['batch'],
-					},
-				},
-				default: '[\n  {"name": {"firstName": "John", "lastName": "Doe"}},\n  {"name": {"firstName": "Jane", "lastName": "Smith"}}\n]',
-				description: 'Array of records to process',
-			},
-			// GraphQL Operations
-			{
-				displayName: 'GraphQL Query',
-				name: 'graphqlQuery',
-				type: 'string',
-				typeOptions: {
-					rows: 10,
-				},
-				displayOptions: {
-					show: {
-						apiType: ['graphql'],
-					},
-				},
-				default: '',
-				placeholder: '{ people(first: 10) { edges { node { ID, name { firstName, lastName } } } } }',
-				description: 'GraphQL query to execute',
-			},
-			{
-				displayName: 'GraphQL Variables',
-				name: 'graphqlVariables',
-				type: 'json',
-				displayOptions: {
-					show: {
-						apiType: ['graphql'],
-					},
-				},
-				default: '{}',
-				description: 'Variables for the GraphQL query',
-			},
-			// Metadata Operations
-			{
-				displayName: 'Metadata Operation',
-				name: 'metadataOperation',
-				type: 'options',
-				displayOptions: {
-					show: {
-						apiType: ['metadata'],
-					},
-				},
-				options: [
-					{
-						name: 'Create Custom Field',
-						value: 'createField',
-						description: 'Create a custom field for an object',
-					},
-					{
-						name: 'Get All Objects',
-						value: 'getAllObjects',
-						description: 'Get all object types and their metadata',
-					},
-					{
-						name: 'Get Fields',
-						value: 'getFields',
-						description: 'Get fields for a specific object',
-					},
-					{
-						name: 'Get Object',
-						value: 'getObject',
-						description: 'Get metadata for a specific object',
-					},
-					{
-						name: 'Get Relations',
-						value: 'getRelations',
-						description: 'Get relations for a specific object',
-					},
-					{
-						name: 'Update Custom Field',
-						value: 'updateField',
-						description: 'Update a custom field',
-					},
-				],
-				default: 'getAllObjects',
-			},
-			// Custom Field Creation
-			{
-				displayName: 'Field Type',
-				name: 'fieldType',
-				type: 'options',
-				displayOptions: {
-					show: {
-						apiType: ['metadata'],
-						metadataOperation: ['createField'],
-					},
-				},
-				options: [
-					{
-						name: 'Boolean',
-						value: 'BOOLEAN',
-					},
-					{
-						name: 'Currency',
-						value: 'CURRENCY',
-					},
-					{
-						name: 'Date',
-						value: 'DATE',
-					},
-					{
-						name: 'DateTime',
-						value: 'DATE_TIME',
-					},
-					{
-						name: 'Email',
-						value: 'EMAIL',
-					},
-					{
-						name: 'Link',
-						value: 'LINK',
-					},
-					{
-						name: 'Multi-Select',
-						value: 'MULTI_SELECT',
-					},
-					{
-						name: 'Number',
-						value: 'NUMBER',
-					},
-					{
-						name: 'Phone',
-						value: 'PHONE',
-					},
-					{
-						name: 'Select',
-						value: 'SELECT',
-					},
-					{
-						name: 'Text',
-						value: 'TEXT',
-					},
-				],
-				default: 'TEXT',
-			},
-			{
-				displayName: 'Field Name',
-				name: 'fieldName',
-				type: 'string',
-				displayOptions: {
-					show: {
-						apiType: ['metadata'],
-						metadataOperation: ['createField', 'updateField'],
-					},
-				},
-				default: '',
-				description: 'Name of the custom field',
-			},
-			{
-				displayName: 'Field Label',
-				name: 'fieldLabel',
-				type: 'string',
-				displayOptions: {
-					show: {
-						apiType: ['metadata'],
-						metadataOperation: ['createField', 'updateField'],
-					},
-				},
-				default: '',
-				description: 'Display label for the field',
-			},
-			{
-				displayName: 'Object Name',
-				name: 'objectName',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['customObject'],
-					},
-					hide: {
-						apiType: ['graphql', 'metadata', 'webhooks', 'batch'],
-					},
-				},
-				placeholder: 'e.g., products',
-				description: 'The name of the custom object in Twenty CRM',
-			},
-			{
-				displayName: 'Object Name',
-				name: 'metadataObjectName',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: {
-					show: {
-						apiType: ['metadata'],
-						metadataOperation: ['getObject', 'getFields', 'getRelations', 'createField', 'updateField'],
-					},
-				},
-				placeholder: 'e.g., person',
-				description: 'The name of the object to get metadata for',
-			},
-			{
-				displayName: 'Record ID',
-				name: 'recordId',
+				displayName: 'ID',
+				name: 'id',
 				type: 'string',
 				required: true,
 				displayOptions: {
 					show: {
 						operation: ['get', 'update', 'delete'],
-						apiType: ['rest'],
 					},
 				},
 				default: '',
-				description: 'The ID of the record',
+				description: 'ID of the record',
+			},
+
+			// ----------------------------------------
+			//             Person Fields
+			// ----------------------------------------
+			{
+				displayName: 'First Name',
+				name: 'firstName',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['person'],
+						operation: ['create', 'update'],
+					},
+				},
 			},
 			{
-				displayName: 'Search Query',
-				name: 'searchQuery',
+				displayName: 'Last Name',
+				name: 'lastName',
 				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['person'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+			{
+				displayName: 'Email',
+				name: 'email',
+				type: 'string',
+				default: '',
+				placeholder: 'john@example.com',
+				displayOptions: {
+					show: {
+						resource: ['person'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+			{
+				displayName: 'Phone',
+				name: 'phone',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['person'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+			{
+				displayName: 'Job Title',
+				name: 'jobTitle',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['person'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+			{
+				displayName: 'City',
+				name: 'city',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['person'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+
+			// ----------------------------------------
+			//             Company Fields
+			// ----------------------------------------
+			{
+				displayName: 'Company Name',
+				name: 'name',
+				type: 'string',
+				default: '',
 				required: true,
 				displayOptions: {
 					show: {
-						operation: ['search'],
-						apiType: ['rest'],
+						resource: ['company'],
+						operation: ['create', 'update'],
 					},
 				},
-				default: '',
-				description: 'Full-text search query',
 			},
-			// Relation Management
 			{
-				displayName: 'Relation Type',
-				name: 'relationType',
-				type: 'options',
+				displayName: 'Domain',
+				name: 'domainName',
+				type: 'string',
+				default: '',
+				placeholder: 'example.com',
 				displayOptions: {
 					show: {
-						resource: ['noteTarget', 'taskTarget'],
-						operation: ['create'],
+						resource: ['company'],
+						operation: ['create', 'update'],
 					},
 				},
+			},
+			{
+				displayName: 'Employee Count',
+				name: 'employees',
+				type: 'number',
+				default: 0,
+				displayOptions: {
+					show: {
+						resource: ['company'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+			{
+				displayName: 'Address',
+				name: 'address',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['company'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+
+			// ----------------------------------------
+			//             Task Fields
+			// ----------------------------------------
+			{
+				displayName: 'Title',
+				name: 'title',
+				type: 'string',
+				default: '',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['task', 'note'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+			{
+				displayName: 'Body',
+				name: 'body',
+				type: 'string',
+				typeOptions: {
+					rows: 4,
+				},
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['task', 'note'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+			{
+				displayName: 'Status',
+				name: 'status',
+				type: 'options',
 				options: [
 					{
-						name: 'Company',
-						value: 'company',
+						name: 'To Do',
+						value: 'TODO',
 					},
 					{
-						name: 'Person',
-						value: 'person',
+						name: 'In Progress',
+						value: 'IN_PROGRESS',
 					},
 					{
-						name: 'Opportunity',
-						value: 'opportunity',
+						name: 'Done',
+						value: 'DONE',
 					},
 				],
-				default: 'person',
-				description: 'Type of record to relate to',
-			},
-			{
-				displayName: 'Source ID',
-				name: 'sourceId',
-				type: 'string',
-				displayOptions: {
-					show: {
-						resource: ['noteTarget', 'taskTarget'],
-						operation: ['create'],
-					},
-				},
-				default: '',
-				description: 'ID of the source record (note or task)',
-			},
-			{
-				displayName: 'Target ID',
-				name: 'targetId',
-				type: 'string',
-				displayOptions: {
-					show: {
-						resource: ['noteTarget', 'taskTarget'],
-						operation: ['create'],
-					},
-				},
-				default: '',
-				description: 'ID of the target record to relate to',
-			},
-			// Task-specific fields
-			{
-				displayName: 'Task Fields',
-				name: 'taskFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
+				default: 'TODO',
 				displayOptions: {
 					show: {
 						resource: ['task'],
 						operation: ['create', 'update'],
-						apiType: ['rest'],
 					},
 				},
-				options: [
-					{
-						displayName: 'Title',
-						name: 'title',
-						type: 'string',
-						default: '',
-						description: 'Task title',
-					},
-					{
-						displayName: 'Body',
-						name: 'bodyV2',
-						type: 'string',
-						typeOptions: {
-							rows: 4,
-						},
-						default: '',
-						description: 'Task description (use JSON format: {"markdown": "text"})',
-					},
-					{
-						displayName: 'Status',
-						name: 'status',
-						type: 'options',
-						options: [
-							{
-								name: 'To Do',
-								value: 'TODO',
-							},
-							{
-								name: 'In Progress',
-								value: 'IN_PROGRESS',
-							},
-							{
-								name: 'Done',
-								value: 'DONE',
-							},
-						],
-						default: 'TODO',
-						description: 'Task status',
-					},
-					{
-						displayName: 'Due Date',
-						name: 'dueAt',
-						type: 'dateTime',
-						default: '',
-						description: 'Task due date',
-					},
-					{
-						displayName: 'Assignee ID',
-						name: 'assigneeId',
-						type: 'string',
-						default: '',
-						description: 'ID of the workspace member to assign the task to',
-					},
-				],
 			},
-			// Note-specific fields
 			{
-				displayName: 'Note Fields',
-				name: 'noteFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
+				displayName: 'Due Date',
+				name: 'dueAt',
+				type: 'dateTime',
+				default: '',
 				displayOptions: {
 					show: {
-						resource: ['note'],
+						resource: ['task'],
 						operation: ['create', 'update'],
-						apiType: ['rest'],
 					},
 				},
-				options: [
-					{
-						displayName: 'Title',
-						name: 'title',
-						type: 'string',
-						default: '',
-						description: 'Note title',
-					},
-					{
-						displayName: 'Body',
-						name: 'bodyV2',
-						type: 'string',
-						typeOptions: {
-							rows: 4,
-						},
-						default: '',
-						description: 'Note content (use JSON format: {"markdown": "text"})',
-					},
-				],
 			},
-			// Calendar Event fields
+
+			// ----------------------------------------
+			//             Opportunity Fields
+			// ----------------------------------------
 			{
-				displayName: 'Calendar Event Fields',
-				name: 'calendarEventFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
+				displayName: 'Opportunity Name',
+				name: 'opportunityName',
+				type: 'string',
+				default: '',
+				required: true,
 				displayOptions: {
 					show: {
-						resource: ['calendarEvent'],
+						resource: ['opportunity'],
 						operation: ['create', 'update'],
-						apiType: ['rest'],
 					},
 				},
-				options: [
-					{
-						displayName: 'Title',
-						name: 'title',
-						type: 'string',
-						default: '',
-						description: 'Event title',
-					},
-					{
-						displayName: 'Start Date',
-						name: 'startsAt',
-						type: 'dateTime',
-						default: '',
-						description: 'Event start date and time',
-					},
-					{
-						displayName: 'End Date',
-						name: 'endsAt',
-						type: 'dateTime',
-						default: '',
-						description: 'Event end date and time',
-					},
-					{
-						displayName: 'Is Full Day',
-						name: 'isFullDay',
-						type: 'boolean',
-						default: false,
-						description: 'Whether this is a full day event',
-					},
-					{
-						displayName: 'Description',
-						name: 'description',
-						type: 'string',
-						typeOptions: {
-							rows: 4,
-						},
-						default: '',
-						description: 'Event description',
-					},
-					{
-						displayName: 'Location',
-						name: 'location',
-						type: 'string',
-						default: '',
-						description: 'Event location',
-					},
-					{
-						displayName: 'Conference Link',
-						name: 'conferenceLink',
-						type: 'string',
-						default: '',
-						description: 'Meeting/conference link',
-					},
-					{
-						displayName: 'Recurring',
-						name: 'recurring',
-						type: 'boolean',
-						default: false,
-						description: 'Whether this is a recurring event',
-					},
-				],
 			},
-			// Message fields
 			{
-				displayName: 'Message Fields',
-				name: 'messageFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
+				displayName: 'Amount',
+				name: 'amount',
+				type: 'number',
+				default: 0,
 				displayOptions: {
 					show: {
-						resource: ['message'],
+						resource: ['opportunity'],
 						operation: ['create', 'update'],
-						apiType: ['rest'],
 					},
 				},
+			},
+			{
+				displayName: 'Stage',
+				name: 'stage',
+				type: 'options',
 				options: [
 					{
-						displayName: 'Subject',
-						name: 'subject',
-						type: 'string',
-						default: '',
-						description: 'Message subject',
+						name: 'New',
+						value: 'NEW',
 					},
 					{
-						displayName: 'Body',
-						name: 'body',
-						type: 'string',
-						typeOptions: {
-							rows: 6,
-						},
-						default: '',
-						description: 'Message body',
+						name: 'Qualified',
+						value: 'QUALIFIED',
 					},
 					{
-						displayName: 'Thread ID',
-						name: 'messageThreadId',
-						type: 'string',
-						default: '',
-						description: 'ID of the message thread',
+						name: 'Proposal',
+						value: 'PROPOSAL',
 					},
 					{
-						displayName: 'Channel ID',
-						name: 'messageChannelId',
-						type: 'string',
-						default: '',
-						description: 'ID of the message channel',
+						name: 'Negotiation',
+						value: 'NEGOTIATION',
+					},
+					{
+						name: 'Won',
+						value: 'WON',
+					},
+					{
+						name: 'Lost',
+						value: 'LOST',
 					},
 				],
-			},
-			// Workflow fields
-			{
-				displayName: 'Workflow Fields',
-				name: 'workflowFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
+				default: 'NEW',
 				displayOptions: {
 					show: {
-						resource: ['workflow', 'workflowAutomatedTrigger'],
+						resource: ['opportunity'],
 						operation: ['create', 'update'],
-						apiType: ['rest'],
 					},
 				},
-				options: [
-					{
-						displayName: 'Name',
-						name: 'name',
-						type: 'string',
-						default: '',
-						description: 'Workflow name',
-					},
-					{
-						displayName: 'Description',
-						name: 'description',
-						type: 'string',
-						default: '',
-						description: 'Workflow description',
-					},
-					{
-						displayName: 'Trigger Type',
-						name: 'triggerType',
-						type: 'options',
-						options: [
-							{
-								name: 'Field Changed',
-								value: 'FIELD_CHANGED',
-							},
-							{
-								name: 'Manual',
-								value: 'MANUAL',
-							},
-							{
-								name: 'Record Created',
-								value: 'RECORD_CREATED',
-							},
-							{
-								name: 'Record Deleted',
-								value: 'RECORD_DELETED',
-							},
-							{
-								name: 'Record Updated',
-								value: 'RECORD_UPDATED',
-							},
-							{
-								name: 'Scheduled',
-								value: 'SCHEDULED',
-							},
-						],
-						default: 'RECORD_CREATED',
-					},
-					{
-						displayName: 'Active',
-						name: 'isActive',
-						type: 'boolean',
-						default: true,
-						description: 'Whether the workflow is active',
-					},
-					{
-						displayName: 'Actions',
-						name: 'actions',
-						type: 'json',
-						default: '[]',
-						description: 'Workflow actions in JSON format',
-					},
-				],
 			},
-			// Generic fields for other resources
 			{
-				displayName: 'Fields',
-				name: 'fields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
+				displayName: 'Probability',
+				name: 'probability',
+				type: 'number',
+				default: 0,
+				typeOptions: {
+					minValue: 0,
+					maxValue: 100,
+				},
 				displayOptions: {
 					show: {
+						resource: ['opportunity'],
 						operation: ['create', 'update'],
-						apiType: ['rest'],
-					},
-					hide: {
-						resource: ['task', 'note', 'calendarEvent', 'message', 'workflow', 'workflowAutomatedTrigger'],
 					},
 				},
-				options: [
-					{
-						displayName: 'Field Values',
-						name: 'fieldValues',
-						type: 'fixedCollection',
-						typeOptions: {
-							multipleValues: true,
-						},
-						default: {},
-						placeholder: 'Add Field Value',
-						options: [
-							{
-								name: 'field',
-								displayName: 'Field',
-								values: [
-									{
-										displayName: 'Field Name',
-										name: 'fieldName',
-										type: 'string',
-										default: '',
-										description: 'The name of the field',
-									},
-									{
-										displayName: 'Field Value',
-										name: 'fieldValue',
-										type: 'string',
-										default: '',
-										description: 'The value of the field',
-									},
-								],
-							},
-						],
-					},
-				],
 			},
-			// Pagination and filtering
+			{
+				displayName: 'Close Date',
+				name: 'closeDate',
+				type: 'dateTime',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['opportunity'],
+						operation: ['create', 'update'],
+					},
+				},
+			},
+
+			// ----------------------------------------
+			//             Custom Resource Fields
+			// ----------------------------------------
+			{
+				displayName: 'Custom Resource Name',
+				name: 'customResource',
+				type: 'string',
+				default: '',
+				placeholder: 'e.g., blocklists, workflows, views',
+				displayOptions: {
+					show: {
+						resource: ['custom'],
+					},
+				},
+				description: 'Name of the custom resource (plural form)',
+			},
+			{
+				displayName: 'Fields JSON',
+				name: 'fieldsJson',
+				type: 'json',
+				default: '{}',
+				displayOptions: {
+					show: {
+						resource: ['custom'],
+						operation: ['create', 'update'],
+					},
+				},
+				description: 'JSON object with field values',
+			},
+
+			// ----------------------------------------
+			//             Pagination
+			// ----------------------------------------
 			{
 				displayName: 'Return All',
 				name: 'returnAll',
 				type: 'boolean',
 				displayOptions: {
 					show: {
-						operation: ['getAll', 'search'],
-						apiType: ['rest'],
+						operation: ['getAll'],
 					},
 				},
 				default: false,
@@ -1130,9 +501,8 @@ export class TwentyCrm implements INodeType {
 				type: 'number',
 				displayOptions: {
 					show: {
-						operation: ['getAll', 'search'],
+						operation: ['getAll'],
 						returnAll: [false],
-						apiType: ['rest'],
 					},
 				},
 				typeOptions: {
@@ -1149,32 +519,10 @@ export class TwentyCrm implements INodeType {
 				default: {},
 				displayOptions: {
 					show: {
-						operation: ['getAll', 'search'],
-						apiType: ['rest'],
+						operation: ['getAll'],
 					},
 				},
 				options: [
-					{
-						displayName: 'After Cursor',
-						name: 'afterCursor',
-						type: 'string',
-						default: '',
-						description: 'Cursor for pagination (get results after this cursor)',
-					},
-					{
-						displayName: 'Before Cursor',
-						name: 'beforeCursor',
-						type: 'string',
-						default: '',
-						description: 'Cursor for pagination (get results before this cursor)',
-					},
-					{
-						displayName: 'Filter',
-						name: 'filter',
-						type: 'json',
-						default: '{}',
-						description: 'Filter query in JSON format',
-					},
 					{
 						displayName: 'Order By',
 						name: 'orderBy',
@@ -1197,105 +545,15 @@ export class TwentyCrm implements INodeType {
 							},
 						],
 						default: 'ASC',
-						description: 'Direction to order results',
 					},
 					{
-						displayName: 'Include Deleted',
-						name: 'includeDeleted',
-						type: 'boolean',
-						default: false,
-						description: 'Whether to include soft-deleted records',
-					},
-					{
-						displayName: 'Depth',
-						name: 'depth',
-						type: 'number',
-						default: 1,
-						description: 'Depth of relations to include',
+						displayName: 'Filter JSON',
+						name: 'filter',
+						type: 'json',
+						default: '{}',
+						description: 'Filter query in JSON format',
 					},
 				],
-			},
-			// File upload for attachments
-			{
-				displayName: 'Binary Property',
-				name: 'binaryPropertyName',
-				type: 'string',
-				default: 'data',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['attachment'],
-						operation: ['create'],
-						apiType: ['rest'],
-					},
-				},
-				placeholder: 'data',
-				description: 'Name of the binary property which contains the file data',
-			},
-			{
-				displayName: 'File Name',
-				name: 'fileName',
-				type: 'string',
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['attachment'],
-						operation: ['create'],
-						apiType: ['rest'],
-					},
-				},
-				description: 'Name of the file being uploaded',
-			},
-			{
-				displayName: 'Parent Type',
-				name: 'parentType',
-				type: 'options',
-				displayOptions: {
-					show: {
-						resource: ['attachment'],
-						operation: ['create'],
-						apiType: ['rest'],
-					},
-				},
-				options: [
-					{
-						name: 'Company',
-						value: 'company',
-					},
-					{
-						name: 'Note',
-						value: 'note',
-					},
-					{
-						name: 'Opportunity',
-						value: 'opportunity',
-					},
-					{
-						name: 'Person',
-						value: 'person',
-					},
-					{
-						name: 'Task',
-						value: 'task',
-					},
-				],
-				default: 'note',
-				description: 'Type of parent record for the attachment',
-			},
-			{
-				displayName: 'Parent ID',
-				name: 'parentId',
-				type: 'string',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['attachment'],
-						operation: ['create'],
-						apiType: ['rest'],
-					},
-				},
-				default: '',
-				description: 'ID of the parent record',
 			},
 		],
 	};
@@ -1304,490 +562,265 @@ export class TwentyCrm implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 		const credentials = await this.getCredentials('twentyCrmApi');
-		const apiType = this.getNodeParameter('apiType', 0) as string;
-		const apiUrl = credentials.apiUrl as string;
+		
+		const resource = this.getNodeParameter('resource', 0) as string;
+		const operation = this.getNodeParameter('operation', 0) as string;
+
+		// Map resource names to API endpoints
+		const resourceMap: IDataObject = {
+			person: 'people',
+			company: 'companies',
+			opportunity: 'opportunities',
+			task: 'tasks',
+			note: 'notes',
+			calendarEvent: 'calendarEvents',
+			message: 'messages',
+			attachment: 'attachments',
+			workflow: 'workflows',
+		};
 
 		for (let i = 0; i < items.length; i++) {
 			try {
 				let responseData;
+				let endpoint = resourceMap[resource] as string;
+				
+				// Handle custom resources
+				if (resource === 'custom') {
+					endpoint = this.getNodeParameter('customResource', i) as string;
+				}
 
-				if (apiType === 'webhooks') {
-					// Handle Webhook operations
-					const webhookOperation = this.getNodeParameter('webhookOperation', i) as string;
-					let endpoint = '/rest/webhooks';
-					let method: IHttpRequestMethods = 'GET';
-					let body: IDataObject = {};
+				const options: IDataObject = {
+					method: 'GET' as IHttpRequestMethods,
+					uri: `${credentials.apiUrl}/rest/${endpoint}`,
+					json: true,
+				};
 
-					if (webhookOperation === 'create') {
-						method = 'POST';
-						body.url = this.getNodeParameter('webhookUrl', i) as string;
-						body.events = this.getNodeParameter('webhookEvents', i) as string[];
-					} else if (webhookOperation === 'get') {
-						const webhookId = this.getNodeParameter('webhookId', i) as string;
-						endpoint += `/${webhookId}`;
-					} else if (webhookOperation === 'update') {
-						const webhookId = this.getNodeParameter('webhookId', i) as string;
-						endpoint += `/${webhookId}`;
-						method = 'PATCH';
-						body.url = this.getNodeParameter('webhookUrl', i) as string;
-						body.events = this.getNodeParameter('webhookEvents', i) as string[];
-					} else if (webhookOperation === 'delete') {
-						const webhookId = this.getNodeParameter('webhookId', i) as string;
-						endpoint += `/${webhookId}`;
-						method = 'DELETE';
-					}
+				if (operation === 'create') {
+					options.method = 'POST';
+					const body: IDataObject = {};
 
-					const options = {
-						method,
-						uri: `${apiUrl}${endpoint}`,
-						body: Object.keys(body).length ? body : undefined,
-						json: true,
-					};
-
-					responseData = await this.helpers.requestWithAuthentication.call(
-						this,
-						'twentyCrmApi',
-						options,
-					);
-
-				} else if (apiType === 'batch') {
-					// Handle Batch operations
-					const batchOperation = this.getNodeParameter('batchOperation', i) as string;
-					const batchResource = this.getNodeParameter('batchResource', i) as string;
-					const batchData = this.getNodeParameter('batchData', i) as string;
-					
-					const parsedData = typeof batchData === 'string' 
-						? JSON.parse(batchData) 
-						: batchData;
-
-					let mutation = '';
-					if (batchOperation === 'createMultiple') {
-						mutation = `mutation { create${batchResource.charAt(0).toUpperCase() + batchResource.slice(1)}(data: ${JSON.stringify(parsedData)}) { id } }`;
-					} else if (batchOperation === 'updateMultiple') {
-						mutation = `mutation { update${batchResource.charAt(0).toUpperCase() + batchResource.slice(1)}(data: ${JSON.stringify(parsedData)}) { id } }`;
-					} else if (batchOperation === 'deleteMultiple') {
-						const ids = parsedData.map((item: any) => item.id);
-						mutation = `mutation { delete${batchResource.charAt(0).toUpperCase() + batchResource.slice(1)}(filter: {id: {in: ${JSON.stringify(ids)}}}) { id } }`;
-					}
-
-					const options = {
-						method: 'POST' as IHttpRequestMethods,
-						uri: `${apiUrl}/graphql`,
-						body: {
-							query: mutation,
-						},
-						json: true,
-					};
-
-					responseData = await this.helpers.requestWithAuthentication.call(
-						this,
-						'twentyCrmApi',
-						options,
-					);
-
-				} else if (apiType === 'graphql') {
-					// Handle GraphQL queries
-					const query = this.getNodeParameter('graphqlQuery', i) as string;
-					const variables = this.getNodeParameter('graphqlVariables', i, {}) as string;
-					
-					const graphqlVariables = typeof variables === 'string' 
-						? JSON.parse(variables || '{}') 
-						: variables;
-
-					const options = {
-						method: 'POST' as IHttpRequestMethods,
-						uri: `${apiUrl}/graphql`,
-						body: {
-							query,
-							variables: graphqlVariables,
-						},
-						json: true,
-					};
-
-					responseData = await this.helpers.requestWithAuthentication.call(
-						this,
-						'twentyCrmApi',
-						options,
-					);
-
-				} else if (apiType === 'metadata') {
-					// Handle Metadata API
-					const metadataOperation = this.getNodeParameter('metadataOperation', i) as string;
-					let endpoint = '/rest/metadata';
-					let method: IHttpRequestMethods = 'GET';
-					let body: IDataObject = {};
-
-					if (metadataOperation === 'getAllObjects') {
-						endpoint += '/objects';
-					} else if (metadataOperation === 'getObject') {
-						const objectName = this.getNodeParameter('metadataObjectName', i) as string;
-						endpoint += `/objects/${objectName}`;
-					} else if (metadataOperation === 'getFields') {
-						const objectName = this.getNodeParameter('metadataObjectName', i) as string;
-						endpoint += `/objects/${objectName}/fields`;
-					} else if (metadataOperation === 'getRelations') {
-						const objectName = this.getNodeParameter('metadataObjectName', i) as string;
-						endpoint += `/objects/${objectName}/relations`;
-					} else if (metadataOperation === 'createField') {
-						const objectName = this.getNodeParameter('metadataObjectName', i) as string;
-						endpoint += `/objects/${objectName}/fields`;
-						method = 'POST';
-						body = {
-							name: this.getNodeParameter('fieldName', i) as string,
-							label: this.getNodeParameter('fieldLabel', i) as string,
-							type: this.getNodeParameter('fieldType', i) as string,
-						};
-					} else if (metadataOperation === 'updateField') {
-						const objectName = this.getNodeParameter('metadataObjectName', i) as string;
-						const fieldName = this.getNodeParameter('fieldName', i) as string;
-						endpoint += `/objects/${objectName}/fields/${fieldName}`;
-						method = 'PATCH';
-						body = {
-							label: this.getNodeParameter('fieldLabel', i) as string,
-						};
-					}
-
-					const options = {
-						method,
-						uri: `${apiUrl}${endpoint}`,
-						body: Object.keys(body).length ? body : undefined,
-						json: true,
-					};
-
-					responseData = await this.helpers.requestWithAuthentication.call(
-						this,
-						'twentyCrmApi',
-						options,
-					);
-
-				} else {
-					// Handle REST API
-					const resource = this.getNodeParameter('resource', 0) as string;
-					const operation = this.getNodeParameter('operation', 0) as string;
-					const baseUrl = `${apiUrl}/rest`;
-					
-					let endpoint = '';
-					let method: IHttpRequestMethods = 'GET';
-					let body: IDataObject = {};
-					let qs: IDataObject = {};
-
-					const resourceMap: { [key: string]: string } = {
-						attachment: 'attachments',
-						blocklist: 'blocklists',
-						calendarChannel: 'calendarChannels',
-						calendarChannelEventAssociation: 'calendarChannelEventAssociations',
-						calendarEvent: 'calendarEvents',
-						calendarEventParticipant: 'calendarEventParticipants',
-						company: 'companies',
-						connectedAccount: 'connectedAccounts',
-						favorite: 'favorites',
-						favoriteFolder: 'favoriteFolders',
-						message: 'messages',
-						messageChannel: 'messageChannels',
-						messageChannelMessageAssociation: 'messageChannelMessageAssociations',
-						messageFolder: 'messageFolders',
-						messageParticipant: 'messageParticipants',
-						messageThread: 'messageThreads',
-						note: 'notes',
-						noteTarget: 'noteTargets',
-						opportunity: 'opportunities',
-						person: 'people',
-						task: 'tasks',
-						taskTarget: 'taskTargets',
-						timelineActivity: 'timelineActivities',
-						view: 'views',
-						viewField: 'viewFields',
-						viewFilter: 'viewFilters',
-						viewFilterGroup: 'viewFilterGroups',
-						viewGroup: 'viewGroups',
-						viewSort: 'viewSorts',
-						workflow: 'workflows',
-						workflowAutomatedTrigger: 'workflowAutomatedTriggers',
-						workflowRun: 'workflowRuns',
-						workflowVersion: 'workflowVersions',
-						workspaceMember: 'workspaceMembers',
-					};
-
-					let resourceName = resourceMap[resource];
-					if (resource === 'customObject') {
-						resourceName = this.getNodeParameter('objectName', i) as string;
-					}
-
-					if (operation === 'getAll') {
-						endpoint = `/${resourceName}`;
-						method = 'GET';
-
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-						const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as IDataObject;
-
-						if (!returnAll) {
-							qs.first = this.getNodeParameter('limit', i) as number;
-						} else {
-							qs.first = 1000;
-						}
-
-						if (additionalOptions.afterCursor) {
-							qs.after = additionalOptions.afterCursor;
-						}
-
-						if (additionalOptions.beforeCursor) {
-							qs.before = additionalOptions.beforeCursor;
-						}
-
-						if (additionalOptions.filter) {
-							try {
-								const filter = typeof additionalOptions.filter === 'string' 
-									? JSON.parse(additionalOptions.filter as string) 
-									: additionalOptions.filter;
-								qs.filter = JSON.stringify(filter);
-							} catch (error) {
-								throw new NodeOperationError(this.getNode(), 'Invalid filter JSON', { itemIndex: i });
-							}
-						}
-
-						if (additionalOptions.orderBy) {
-							qs.orderBy = additionalOptions.orderBy;
-							qs.orderDirection = additionalOptions.orderDirection || 'ASC';
-						}
-
-						if (additionalOptions.includeDeleted) {
-							qs.includeDeleted = true;
-						}
-
-						if (additionalOptions.depth) {
-							qs.depth = additionalOptions.depth;
-						}
-
-					} else if (operation === 'search') {
-						endpoint = `/${resourceName}/search`;
-						method = 'POST';
+					if (resource === 'person') {
+						const firstName = this.getNodeParameter('firstName', i, '') as string;
+						const lastName = this.getNodeParameter('lastName', i, '') as string;
 						
-						const searchQuery = this.getNodeParameter('searchQuery', i) as string;
-						body.query = searchQuery;
-
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-						if (!returnAll) {
-							body.limit = this.getNodeParameter('limit', i) as number;
+						if (firstName || lastName) {
+							body.name = {
+								firstName: firstName || '',
+								lastName: lastName || '',
+							};
+						}
+						
+						const email = this.getNodeParameter('email', i, '') as string;
+						if (email) {
+							body.emails = {
+								primaryEmail: email,
+								additionalEmails: [],
+							};
 						}
 
-					} else if (operation === 'get') {
-						const recordId = this.getNodeParameter('recordId', i) as string;
-						endpoint = `/${resourceName}/${recordId}`;
-						method = 'GET';
+						const phone = this.getNodeParameter('phone', i, '') as string;
+						if (phone) {
+							body.phones = {
+								primaryPhoneNumber: phone,
+								primaryPhoneCountryCode: 'US',
+								additionalPhones: [],
+							};
+						}
 
-					} else if (operation === 'create') {
-						endpoint = `/${resourceName}`;
-						method = 'POST';
+						const jobTitle = this.getNodeParameter('jobTitle', i, '') as string;
+						if (jobTitle) body.jobTitle = jobTitle;
 
-						// Handle resource-specific fields
-						if (resource === 'task') {
-							const taskFields = this.getNodeParameter('taskFields', i, {}) as IDataObject;
-							// Handle bodyV2 field properly
-							if (taskFields.bodyV2 && typeof taskFields.bodyV2 === 'string') {
-								taskFields.bodyV2 = { markdown: taskFields.bodyV2 };
-							}
-							Object.assign(body, taskFields);
-						} else if (resource === 'note') {
-							const noteFields = this.getNodeParameter('noteFields', i, {}) as IDataObject;
-							// Handle bodyV2 field properly
-							if (noteFields.bodyV2 && typeof noteFields.bodyV2 === 'string') {
-								noteFields.bodyV2 = { markdown: noteFields.bodyV2 };
-							}
-							Object.assign(body, noteFields);
-						} else if (resource === 'calendarEvent') {
-							const eventFields = this.getNodeParameter('calendarEventFields', i, {}) as IDataObject;
-							Object.assign(body, eventFields);
-						} else if (resource === 'message') {
-							const messageFields = this.getNodeParameter('messageFields', i, {}) as IDataObject;
-							Object.assign(body, messageFields);
-						} else if (resource === 'workflow' || resource === 'workflowAutomatedTrigger') {
-							const workflowFields = this.getNodeParameter('workflowFields', i, {}) as IDataObject;
-							Object.assign(body, workflowFields);
-						} else if (resource === 'attachment') {
-							// Handle file upload with binary data
-							const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i) as string;
-							const parentType = this.getNodeParameter('parentType', i) as string;
-							const parentId = this.getNodeParameter('parentId', i) as string;
-							const fileName = this.getNodeParameter('fileName', i, '') as string;
+						const city = this.getNodeParameter('city', i, '') as string;
+						if (city) body.city = city;
+					}
+
+					if (resource === 'company') {
+						body.name = this.getNodeParameter('name', i) as string;
+						
+						const domainName = this.getNodeParameter('domainName', i, '') as string;
+						if (domainName) {
+							body.domainName = {
+								primaryLinkLabel: domainName,
+								primaryLinkUrl: `https://${domainName}`,
+							};
+						}
+
+						const employees = this.getNodeParameter('employees', i, 0) as number;
+						if (employees > 0) body.employees = employees;
+
+						const address = this.getNodeParameter('address', i, '') as string;
+						if (address) {
+							body.address = {
+								addressStreet1: address,
+								addressCity: '',
+								addressCountry: '',
+							};
+						}
+					}
+
+					if (resource === 'task') {
+						body.title = this.getNodeParameter('title', i) as string;
+						const bodyText = this.getNodeParameter('body', i, '') as string;
+						if (bodyText) {
+							body.bodyV2 = { markdown: bodyText };
+						}
+						body.status = this.getNodeParameter('status', i, 'TODO') as string;
+						const dueAt = this.getNodeParameter('dueAt', i, '') as string;
+						if (dueAt) body.dueAt = dueAt;
+					}
+
+					if (resource === 'note') {
+						body.title = this.getNodeParameter('title', i) as string;
+						const bodyText = this.getNodeParameter('body', i, '') as string;
+						if (bodyText) {
+							body.bodyV2 = { markdown: bodyText };
+						}
+					}
+
+					if (resource === 'opportunity') {
+						body.name = this.getNodeParameter('opportunityName', i) as string;
+						body.amount = this.getNodeParameter('amount', i, 0) as number;
+						body.stage = this.getNodeParameter('stage', i, 'NEW') as string;
+						body.probability = this.getNodeParameter('probability', i, 0) as number;
+						const closeDate = this.getNodeParameter('closeDate', i, '') as string;
+						if (closeDate) body.closeDate = closeDate;
+					}
+
+					if (resource === 'custom') {
+						const fieldsJson = this.getNodeParameter('fieldsJson', i, '{}') as string;
+						try {
+							Object.assign(body, JSON.parse(fieldsJson));
+						} catch (error) {
+							throw new NodeOperationError(this.getNode(), 'Invalid JSON in Fields', { itemIndex: i });
+						}
+					}
+
+					options.body = body;
+				}
+
+				if (operation === 'get') {
+					const id = this.getNodeParameter('id', i) as string;
+					options.uri = `${credentials.apiUrl}/rest/${endpoint}/${id}`;
+				}
+
+				if (operation === 'getAll') {
+					const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+					const limit = this.getNodeParameter('limit', i, 50) as number;
+					const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as IDataObject;
+					
+					const qs: IDataObject = {};
+					
+					if (!returnAll) {
+						qs.first = limit;
+					} else {
+						qs.first = 1000;
+					}
+					
+					if (additionalOptions.orderBy) {
+						qs.orderBy = additionalOptions.orderBy;
+						qs.orderDirection = additionalOptions.orderDirection || 'ASC';
+					}
+					
+					if (additionalOptions.filter) {
+						try {
+							const filter = typeof additionalOptions.filter === 'string' 
+								? JSON.parse(additionalOptions.filter as string) 
+								: additionalOptions.filter;
+							qs.filter = JSON.stringify(filter);
+						} catch (error) {
+							throw new NodeOperationError(this.getNode(), 'Invalid filter JSON', { itemIndex: i });
+						}
+					}
+					
+					options.qs = qs;
+				}
+
+				if (operation === 'update') {
+					options.method = 'PATCH';
+					const id = this.getNodeParameter('id', i) as string;
+					options.uri = `${credentials.apiUrl}/rest/${endpoint}/${id}`;
+					
+					const updateBody: IDataObject = {};
+					
+					// Similar field handling as create
+					if (resource === 'person') {
+						const firstName = this.getNodeParameter('firstName', i, '') as string;
+						const lastName = this.getNodeParameter('lastName', i, '') as string;
+						
+						if (firstName || lastName) {
+							updateBody.name = {
+								firstName: firstName || '',
+								lastName: lastName || '',
+							};
+						}
+						
+						const email = this.getNodeParameter('email', i, '') as string;
+						if (email) {
+							updateBody.emails = {
+								primaryEmail: email,
+								additionalEmails: [],
+							};
+						}
+					}
+					
+					if (resource === 'custom') {
+						const fieldsJson = this.getNodeParameter('fieldsJson', i, '{}') as string;
+						try {
+							Object.assign(updateBody, JSON.parse(fieldsJson));
+						} catch (error) {
+							throw new NodeOperationError(this.getNode(), 'Invalid JSON in Fields', { itemIndex: i });
+						}
+					}
+					
+					// Add other resource update fields as needed
+					options.body = updateBody;
+				}
+
+				if (operation === 'delete') {
+					options.method = 'DELETE';
+					const id = this.getNodeParameter('id', i) as string;
+					options.uri = `${credentials.apiUrl}/rest/${endpoint}/${id}`;
+				}
+
+				responseData = await this.helpers.httpRequestWithAuthentication.call(
+					this,
+					'twentyCrmApi',
+					options as any,
+				);
+
+				// Handle response
+				if (operation === 'getAll' && responseData.data) {
+					const resourceKey = Object.keys(responseData.data)[0];
+					if (responseData.data[resourceKey]) {
+						// Handle pagination for returnAll
+						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						if (returnAll && responseData.pageInfo?.hasNextPage) {
+							let allData = responseData.data[resourceKey];
+							let nextCursor = responseData.pageInfo.endCursor;
 							
-							if (items[i].binary && items[i].binary![binaryPropertyName]) {
-								const binaryData = items[i].binary![binaryPropertyName] as IBinaryData;
-								const formData = {
-									file: {
-										value: binaryData.data,
-										options: {
-											filename: fileName || binaryData.fileName,
-											contentType: binaryData.mimeType,
-										},
-									},
-									parentType,
-									parentId,
+							while (nextCursor) {
+								const nextOptions = { 
+									...options, 
+									qs: { ...(options.qs as IDataObject), after: nextCursor } 
 								};
 								
-								// Use multipart form data for file upload
-								const uploadOptions = {
-									method: 'POST' as IHttpRequestMethods,
-									uri: `${baseUrl}${endpoint}`,
-									formData,
-									json: true,
-								};
-
-								responseData = await this.helpers.requestWithAuthentication.call(
+								const nextResponse = await this.helpers.httpRequestWithAuthentication.call(
 									this,
 									'twentyCrmApi',
-									uploadOptions,
+									nextOptions as any,
 								);
-								continue;
-							} else {
-								throw new NodeOperationError(this.getNode(), 'No binary data found', { itemIndex: i });
+								
+								if (nextResponse.data && nextResponse.data[resourceKey]) {
+									allData = allData.concat(nextResponse.data[resourceKey]);
+									nextCursor = nextResponse.pageInfo?.hasNextPage ? nextResponse.pageInfo.endCursor : null;
+								} else {
+									break;
+								}
 							}
-						} else if (resource === 'noteTarget' || resource === 'taskTarget') {
-							// Handle relation creation
-							const sourceId = this.getNodeParameter('sourceId', i) as string;
-							const targetId = this.getNodeParameter('targetId', i) as string;
-							const relationType = this.getNodeParameter('relationType', i) as string;
 							
-							body = {
-								[resource === 'noteTarget' ? 'noteId' : 'taskId']: sourceId,
-								[`${relationType}Id`]: targetId,
-							};
+							responseData = allData;
 						} else {
-							// Generic fields
-							const fields = this.getNodeParameter('fields', i, {}) as any;
-							if (fields.fieldValues?.field) {
-								fields.fieldValues.field.forEach((field: any) => {
-									// Parse JSON strings for complex fields
-									try {
-										body[field.fieldName] = JSON.parse(field.fieldValue);
-									} catch {
-										body[field.fieldName] = field.fieldValue;
-									}
-								});
-							}
-						}
-
-					} else if (operation === 'update') {
-						const recordId = this.getNodeParameter('recordId', i) as string;
-						endpoint = `/${resourceName}/${recordId}`;
-						method = 'PATCH';
-
-						// Handle resource-specific fields (same as create)
-						if (resource === 'task') {
-							const taskFields = this.getNodeParameter('taskFields', i, {}) as IDataObject;
-							if (taskFields.bodyV2 && typeof taskFields.bodyV2 === 'string') {
-								taskFields.bodyV2 = { markdown: taskFields.bodyV2 };
-							}
-							Object.assign(body, taskFields);
-						} else if (resource === 'note') {
-							const noteFields = this.getNodeParameter('noteFields', i, {}) as IDataObject;
-							if (noteFields.bodyV2 && typeof noteFields.bodyV2 === 'string') {
-								noteFields.bodyV2 = { markdown: noteFields.bodyV2 };
-							}
-							Object.assign(body, noteFields);
-						} else if (resource === 'calendarEvent') {
-							const eventFields = this.getNodeParameter('calendarEventFields', i, {}) as IDataObject;
-							Object.assign(body, eventFields);
-						} else if (resource === 'message') {
-							const messageFields = this.getNodeParameter('messageFields', i, {}) as IDataObject;
-							Object.assign(body, messageFields);
-						} else if (resource === 'workflow' || resource === 'workflowAutomatedTrigger') {
-							const workflowFields = this.getNodeParameter('workflowFields', i, {}) as IDataObject;
-							Object.assign(body, workflowFields);
-						} else {
-							// Generic fields
-							const fields = this.getNodeParameter('fields', i, {}) as any;
-							if (fields.fieldValues?.field) {
-								fields.fieldValues.field.forEach((field: any) => {
-									try {
-										body[field.fieldName] = JSON.parse(field.fieldValue);
-									} catch {
-										body[field.fieldName] = field.fieldValue;
-									}
-								});
-							}
-						}
-
-					} else if (operation === 'delete') {
-						const recordId = this.getNodeParameter('recordId', i) as string;
-						endpoint = `/${resourceName}/${recordId}`;
-						method = 'DELETE';
-
-					} else if (operation === 'upsert') {
-						// Upsert operation - update if exists, create if not
-						endpoint = `/${resourceName}/upsert`;
-						method = 'POST';
-						
-						const fields = this.getNodeParameter('fields', i, {}) as any;
-						if (fields.fieldValues?.field) {
-							fields.fieldValues.field.forEach((field: any) => {
-								try {
-									body[field.fieldName] = JSON.parse(field.fieldValue);
-								} catch {
-									body[field.fieldName] = field.fieldValue;
-								}
-							});
-						}
-					}
-
-					const options: any = {
-						method,
-						uri: `${baseUrl}${endpoint}`,
-						json: true,
-					};
-
-					if (Object.keys(body).length > 0) {
-						options.body = body;
-					}
-
-					if (Object.keys(qs).length > 0) {
-						options.qs = qs;
-					}
-
-					responseData = await this.helpers.requestWithAuthentication.call(
-						this,
-						'twentyCrmApi',
-						options,
-					);
-
-					// Handle response data structure
-					if (operation === 'getAll' && responseData.data) {
-						// Extract the nested data array
-						const resourceKey = Object.keys(responseData.data)[0];
-						if (responseData.data[resourceKey]) {
-							// Handle pagination for returnAll
-							const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-							if (returnAll && responseData.pageInfo?.hasNextPage) {
-								let allData = responseData.data[resourceKey];
-								let nextCursor = responseData.pageInfo.endCursor;
-								
-								while (nextCursor) {
-									qs.after = nextCursor;
-									const nextOptions = { ...options, qs: { ...qs, after: nextCursor } };
-									const nextResponse = await this.helpers.requestWithAuthentication.call(
-										this,
-										'twentyCrmApi',
-										nextOptions,
-									);
-									
-									if (nextResponse.data && nextResponse.data[resourceKey]) {
-										allData = allData.concat(nextResponse.data[resourceKey]);
-										nextCursor = nextResponse.pageInfo?.hasNextPage ? nextResponse.pageInfo.endCursor : null;
-									} else {
-										break;
-									}
-								}
-								
-								responseData = {
-									data: allData,
-									totalCount: allData.length,
-								};
-							} else {
-								responseData = {
-									data: responseData.data[resourceKey],
-									pageInfo: responseData.pageInfo,
-									totalCount: responseData.totalCount,
-								};
-							}
+							responseData = responseData.data[resourceKey];
 						}
 					}
 				}
@@ -1798,16 +831,21 @@ export class TwentyCrm implements INodeType {
 				);
 
 				returnData.push(...executionData);
-			} catch (error) {
+			} catch (error: any) {
 				if (this.continueOnFail()) {
-					const executionErrorData = this.helpers.constructExecutionMetaData(
-						this.helpers.returnJsonArray({ error: error.message }),
-						{ itemData: { item: i } },
-					);
-					returnData.push(...executionErrorData);
+					returnData.push({
+						json: { 
+							error: error.message,
+							resource,
+							operation,
+						},
+						pairedItem: { item: i },
+					});
 					continue;
 				}
-				throw error;
+				throw new NodeOperationError(this.getNode(), error, {
+					itemIndex: i,
+				});
 			}
 		}
 
