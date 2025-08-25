@@ -38,9 +38,9 @@ export class TwentyCrm implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'REST',
-						value: 'rest',
-						description: 'Use REST API for standard CRUD operations',
+						name: 'Batch',
+						value: 'batch',
+						description: 'Perform batch operations',
 					},
 					{
 						name: 'GraphQL',
@@ -53,14 +53,14 @@ export class TwentyCrm implements INodeType {
 						description: 'Access metadata and schema information',
 					},
 					{
+						name: 'REST',
+						value: 'rest',
+						description: 'Use REST API for standard CRUD operations',
+					},
+					{
 						name: 'Webhooks',
 						value: 'webhooks',
 						description: 'Manage webhooks for event notifications',
-					},
-					{
-						name: 'Batch',
-						value: 'batch',
-						description: 'Perform batch operations',
 					},
 				],
 				default: 'rest',
@@ -238,6 +238,12 @@ export class TwentyCrm implements INodeType {
 						action: 'Create a record',
 					},
 					{
+						name: 'Create or Update',
+						value: 'upsert',
+						description: 'Create a new record, or update the current one if it already exists (upsert)',
+						action: 'Upsert a record',
+					},
+					{
 						name: 'Delete',
 						value: 'delete',
 						description: 'Delete a record',
@@ -256,22 +262,16 @@ export class TwentyCrm implements INodeType {
 						action: 'Get many records',
 					},
 					{
-						name: 'Update',
-						value: 'update',
-						description: 'Update a record',
-						action: 'Update a record',
-					},
-					{
 						name: 'Search',
 						value: 'search',
 						description: 'Search records using full-text search',
 						action: 'Search records',
 					},
 					{
-						name: 'Upsert',
-						value: 'upsert',
-						description: 'Update or create a record',
-						action: 'Upsert a record',
+						name: 'Update',
+						value: 'update',
+						description: 'Update a record',
+						action: 'Update a record',
 					},
 				],
 				default: 'getAll',
@@ -347,24 +347,12 @@ export class TwentyCrm implements INodeType {
 						value: 'company.created',
 					},
 					{
-						name: 'Company Updated',
-						value: 'company.updated',
-					},
-					{
 						name: 'Company Deleted',
 						value: 'company.deleted',
 					},
 					{
-						name: 'Person Created',
-						value: 'person.created',
-					},
-					{
-						name: 'Person Updated',
-						value: 'person.updated',
-					},
-					{
-						name: 'Person Deleted',
-						value: 'person.deleted',
+						name: 'Company Updated',
+						value: 'company.updated',
 					},
 					{
 						name: 'Opportunity Created',
@@ -375,16 +363,28 @@ export class TwentyCrm implements INodeType {
 						value: 'opportunity.updated',
 					},
 					{
+						name: 'Person Created',
+						value: 'person.created',
+					},
+					{
+						name: 'Person Deleted',
+						value: 'person.deleted',
+					},
+					{
+						name: 'Person Updated',
+						value: 'person.updated',
+					},
+					{
+						name: 'Task Completed',
+						value: 'task.completed',
+					},
+					{
 						name: 'Task Created',
 						value: 'task.created',
 					},
 					{
 						name: 'Task Updated',
 						value: 'task.updated',
-					},
-					{
-						name: 'Task Completed',
-						value: 'task.completed',
 					},
 				],
 				default: [],
@@ -453,20 +453,20 @@ export class TwentyCrm implements INodeType {
 						value: 'companies',
 					},
 					{
-						name: 'People',
-						value: 'people',
-					},
-					{
-						name: 'Tasks',
-						value: 'tasks',
-					},
-					{
 						name: 'Notes',
 						value: 'notes',
 					},
 					{
 						name: 'Opportunities',
 						value: 'opportunities',
+					},
+					{
+						name: 'People',
+						value: 'people',
+					},
+					{
+						name: 'Tasks',
+						value: 'tasks',
 					},
 				],
 				default: 'people',
@@ -497,7 +497,7 @@ export class TwentyCrm implements INodeType {
 					},
 				},
 				default: '',
-				placeholder: '{\n  people(first: 10) {\n    edges {\n      node {\n        id\n        name {\n          firstName\n          lastName\n        }\n      }\n    }\n  }\n}',
+				placeholder: '{ people(first: 10) { edges { node { ID, name { firstName, lastName } } } } }',
 				description: 'GraphQL query to execute',
 			},
 			{
@@ -524,14 +524,14 @@ export class TwentyCrm implements INodeType {
 				},
 				options: [
 					{
+						name: 'Create Custom Field',
+						value: 'createField',
+						description: 'Create a custom field for an object',
+					},
+					{
 						name: 'Get All Objects',
 						value: 'getAllObjects',
 						description: 'Get all object types and their metadata',
-					},
-					{
-						name: 'Get Object',
-						value: 'getObject',
-						description: 'Get metadata for a specific object',
 					},
 					{
 						name: 'Get Fields',
@@ -539,14 +539,14 @@ export class TwentyCrm implements INodeType {
 						description: 'Get fields for a specific object',
 					},
 					{
+						name: 'Get Object',
+						value: 'getObject',
+						description: 'Get metadata for a specific object',
+					},
+					{
 						name: 'Get Relations',
 						value: 'getRelations',
 						description: 'Get relations for a specific object',
-					},
-					{
-						name: 'Create Custom Field',
-						value: 'createField',
-						description: 'Create a custom field for an object',
 					},
 					{
 						name: 'Update Custom Field',
@@ -569,16 +569,12 @@ export class TwentyCrm implements INodeType {
 				},
 				options: [
 					{
-						name: 'Text',
-						value: 'TEXT',
-					},
-					{
-						name: 'Number',
-						value: 'NUMBER',
-					},
-					{
 						name: 'Boolean',
 						value: 'BOOLEAN',
+					},
+					{
+						name: 'Currency',
+						value: 'CURRENCY',
 					},
 					{
 						name: 'Date',
@@ -589,28 +585,32 @@ export class TwentyCrm implements INodeType {
 						value: 'DATE_TIME',
 					},
 					{
-						name: 'Select',
-						value: 'SELECT',
-					},
-					{
-						name: 'Multi-Select',
-						value: 'MULTI_SELECT',
-					},
-					{
-						name: 'Currency',
-						value: 'CURRENCY',
+						name: 'Email',
+						value: 'EMAIL',
 					},
 					{
 						name: 'Link',
 						value: 'LINK',
 					},
 					{
-						name: 'Email',
-						value: 'EMAIL',
+						name: 'Multi-Select',
+						value: 'MULTI_SELECT',
+					},
+					{
+						name: 'Number',
+						value: 'NUMBER',
 					},
 					{
 						name: 'Phone',
 						value: 'PHONE',
+					},
+					{
+						name: 'Select',
+						value: 'SELECT',
+					},
+					{
+						name: 'Text',
+						value: 'TEXT',
 					},
 				],
 				default: 'TEXT',
@@ -1017,28 +1017,28 @@ export class TwentyCrm implements INodeType {
 						type: 'options',
 						options: [
 							{
-								name: 'Record Created',
-								value: 'RECORD_CREATED',
+								name: 'Field Changed',
+								value: 'FIELD_CHANGED',
 							},
 							{
-								name: 'Record Updated',
-								value: 'RECORD_UPDATED',
+								name: 'Manual',
+								value: 'MANUAL',
+							},
+							{
+								name: 'Record Created',
+								value: 'RECORD_CREATED',
 							},
 							{
 								name: 'Record Deleted',
 								value: 'RECORD_DELETED',
 							},
 							{
-								name: 'Field Changed',
-								value: 'FIELD_CHANGED',
+								name: 'Record Updated',
+								value: 'RECORD_UPDATED',
 							},
 							{
 								name: 'Scheduled',
 								value: 'SCHEDULED',
-							},
-							{
-								name: 'Manual',
-								value: 'MANUAL',
 							},
 						],
 						default: 'RECORD_CREATED',
@@ -1137,7 +1137,6 @@ export class TwentyCrm implements INodeType {
 				},
 				typeOptions: {
 					minValue: 1,
-					maxValue: 1000,
 				},
 				default: 50,
 				description: 'Max number of results to return',
