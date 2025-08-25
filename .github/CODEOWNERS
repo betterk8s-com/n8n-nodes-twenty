@@ -1,0 +1,9 @@
+# This file defines who owns what in this repository
+# These owners will be requested for review when someone opens a pull request
+
+# Global owners for everything
+* @stefankrempel
+
+# Node specific files
+/nodes/ @stefankrempel
+/credentials/ @stefankrempel
