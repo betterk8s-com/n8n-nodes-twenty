@@ -1,0 +1,256 @@
+{
+  "name": "Twenty CRM Test Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [50, 300]
+    },
+    {
+      "parameters": {
+        "apiType": "rest",
+        "resource": "person",
+        "operation": "create",
+        "fields": {
+          "fieldValues": {
+            "field": [
+              {
+                "fieldName": "name",
+                "fieldValue": "{\"firstName\":\"John\",\"lastName\":\"Smith\"}"
+              },
+              {
+                "fieldName": "emails",
+                "fieldValue": "{\"primaryEmail\":\"john.smith@example.com\",\"additionalEmails\":[]}"
+              },
+              {
+                "fieldName": "phones",
+                "fieldValue": "{\"primaryPhoneNumber\":\"555-0100\",\"primaryPhoneCountryCode\":\"US\",\"additionalPhones\":[]}"
+              },
+              {
+                "fieldName": "jobTitle",
+                "fieldValue": "Software Engineer"
+              },
+              {
+                "fieldName": "city",
+                "fieldValue": "San Francisco"
+              }
+            ]
+          }
+        }
+      },
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Create Person",
+      "type": "n8n-nodes-twenty.twentyCrm",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "credentials": {
+        "twentyCrmApi": {
+          "id": "1",
+          "name": "Twenty CRM API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "apiType": "rest",
+        "resource": "company",
+        "operation": "create",
+        "fields": {
+          "fieldValues": {
+            "field": [
+              {
+                "fieldName": "name",
+                "fieldValue": "Acme Corporation"
+              },
+              {
+                "fieldName": "employees",
+                "fieldValue": "500"
+              },
+              {
+                "fieldName": "address",
+                "fieldValue": "{\"addressStreet1\":\"123 Business Ave\",\"addressCity\":\"New York\",\"addressState\":\"NY\",\"addressCountry\":\"USA\",\"addressPostcode\":\"10001\"}"
+              },
+              {
+                "fieldName": "domainName",
+                "fieldValue": "{\"primaryLinkLabel\":\"acme.com\",\"primaryLinkUrl\":\"https://acme.com\"}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Create Company",
+      "type": "n8n-nodes-twenty.twentyCrm",
+      "typeVersion": 1,
+      "position": [450, 200],
+      "credentials": {
+        "twentyCrmApi": {
+          "id": "1",
+          "name": "Twenty CRM API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "apiType": "rest",
+        "resource": "task",
+        "operation": "create",
+        "taskFields": {
+          "title": "Follow up with new client",
+          "bodyV2": "{\"markdown\":\"Schedule initial meeting to discuss requirements\"}",
+          "status": "TODO",
+          "dueAt": "={{$now.plus(7, 'days').toISO()}}"
+        }
+      },
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "name": "Create Task",
+      "type": "n8n-nodes-twenty.twentyCrm",
+      "typeVersion": 1,
+      "position": [450, 400],
+      "credentials": {
+        "twentyCrmApi": {
+          "id": "1",
+          "name": "Twenty CRM API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "apiType": "rest",
+        "resource": "person",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 10,
+        "additionalOptions": {
+          "orderBy": "createdAt",
+          "orderDirection": "DESC"
+        }
+      },
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "name": "List Recent People",
+      "type": "n8n-nodes-twenty.twentyCrm",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "twentyCrmApi": {
+          "id": "1",
+          "name": "Twenty CRM API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "apiType": "graphql",
+        "graphqlQuery": "query GetOverview($limit: Int) {\n  people(first: $limit) {\n    edges {\n      node {\n        id\n        name {\n          firstName\n          lastName\n        }\n        jobTitle\n        emails {\n          primaryEmail\n        }\n      }\n    }\n    totalCount\n  }\n  companies(first: $limit) {\n    edges {\n      node {\n        id\n        name\n        employees\n      }\n    }\n    totalCount\n  }\n  tasks(first: $limit, filter: {status: {eq: \"TODO\"}}) {\n    edges {\n      node {\n        id\n        title\n        dueAt\n      }\n    }\n  }\n}",
+        "graphqlVariables": "{\"limit\": 5}"
+      },
+      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "name": "GraphQL Query",
+      "type": "n8n-nodes-twenty.twentyCrm",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "twentyCrmApi": {
+          "id": "1",
+          "name": "Twenty CRM API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "apiType": "metadata",
+        "metadataOperation": "getAllObjects"
+      },
+      "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+      "name": "Get Schema",
+      "type": "n8n-nodes-twenty.twentyCrm",
+      "typeVersion": 1,
+      "position": [850, 500],
+      "credentials": {
+        "twentyCrmApi": {
+          "id": "1",
+          "name": "Twenty CRM API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Create Person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Person": {
+      "main": [
+        [
+          {
+            "node": "Create Company",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Company": {
+      "main": [
+        [
+          {
+            "node": "List Recent People",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Task": {
+      "main": [
+        [
+          {
+            "node": "List Recent People",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Recent People": {
+      "main": [
+        [
+          {
+            "node": "GraphQL Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GraphQL Query": {
+      "main": [
+        [
+          {
+            "node": "Get Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": 1
+}
