@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-twentycrm",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "n8n node for Twenty CRM integration",
   "keywords": [
     "n8n-community-node-package"
